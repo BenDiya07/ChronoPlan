@@ -1,15 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/network/network_info.dart';
+import '../../../../core/providers.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/product_local_datasource.dart';
 import '../../data/datasources/product_remote_datasource.dart';
 import '../../data/repositories/product_repository_impl.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../domain/repositories/product_repository.dart';
-
-final networkInfoProvider = Provider<NetworkInfo>((ref) {
-  return NetworkInfoImpl();
-});
 
 final productLocalDataSourceProvider = Provider<ProductLocalDataSource>((ref) {
   return ProductLocalDataSourceImpl(hiveService: ref.watch(hiveServiceProvider));

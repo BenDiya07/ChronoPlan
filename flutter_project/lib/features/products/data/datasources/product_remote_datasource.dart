@@ -24,7 +24,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
         endpoint = ApiEndpoints.productSearch;
         queryParams['q'] = searchQuery.trim();
       } else if (category != null && category.isNotEmpty && category.toLowerCase() != 'all') {
-        endpoint = '${ApiEndpoints.products}/category/$category';
+        endpoint = ApiEndpoints.productByCategory(category);
       }
 
       final response = await dio.get(endpoint, queryParameters: queryParams);

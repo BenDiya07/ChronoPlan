@@ -3,45 +3,58 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController(text: 'emilys');
-  final _passwordController = TextEditingController(text: 'emilyspass');
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref.read(authProvider.notifier).login(
-          _usernameController.text.trim(),
-          _passwordController.text.trim(),
-        );
+    setState(() => _isLoading = true);
+
+    final success = await ref.read(authProvider.notifier).register(
+      username: _usernameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+    );
 
     if (mounted) {
+      setState(() => _isLoading = false);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Connexion réussie ! Token JWT injecté via Interceptor.'),
+            content: Text('Inscription réussie ! Connecté.'),
             backgroundColor: Colors.green,
           ),
         );
         context.go('/catalog');
       } else {
-        final error = ref.read(authProvider).errorMessage ?? 'Erreur lors de la connexion';
+        final error = ref.read(authProvider).errorMessage ?? 'Erreur lors de l\'inscription';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error),
@@ -55,7 +68,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final isLoading = authState.status == AuthStatus.loading;
+    final isLoading = authState.status == AuthStatus.loading || _isLoading;
 
     return Scaffold(
       body: SafeArea(
@@ -77,14 +90,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.shopping_bag_outlined,
+                      Icons.person_add_outlined,
                       size: 38,
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'ShopVerse Connect',
+                    'Créer un compte',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
@@ -92,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Authentification REST API avec JWT & Refresh Token',
+                    'Inscription via API REST (DummyJSON)',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey.shade600,
@@ -100,55 +113,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Demo credentials tip
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  // First Name
+                  TextFormField(
+                    controller: _firstNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Prénom',
+                      prefixIcon: Icon(Icons.person_outline),
+                      border: OutlineInputBorder(),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Identifiants démo DummyJSON :',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-                              ),
-                              Text(
-                                'User: emilys  |  Pass: emilyspass',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontFamily: 'monospace',
-                                  color: Colors.blue.shade800,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                    validator: (v) => (v == null || v.isEmpty) ? 'Prénom requis' : null,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  // Username Input
+                  // Last Name
+                  TextFormField(
+                    controller: _lastNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nom',
+                      prefixIcon: Icon(Icons.person_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => (v == null || v.isEmpty) ? 'Nom requis' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Username
                   TextFormField(
                     controller: _usernameController,
                     decoration: const InputDecoration(
                       labelText: 'Nom d\'utilisateur',
-                      prefixIcon: Icon(Icons.person_outline),
+                      prefixIcon: Icon(Icons.alternate_email),
                       border: OutlineInputBorder(),
                     ),
-                    validator: (v) => (v == null || v.isEmpty) ? 'Veuillez saisir votre identifiant' : null,
+                    validator: (v) => (v == null || v.isEmpty) ? 'Nom d\'utilisateur requis' : null,
                   ),
                   const SizedBox(height: 16),
 
-                  // Password Input
+                  // Email
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Email requis';
+                      if (!v.contains('@')) return 'Email invalide';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Password
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
@@ -161,13 +179,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
                     ),
-                    validator: (v) => (v == null || v.length < 4) ? 'Mot de passe trop court' : null,
+                    validator: (v) => (v == null || v.length < 4) ? 'Minimum 4 caractères' : null,
                   ),
                   const SizedBox(height: 24),
 
                   // Submit Button
                   ElevatedButton(
-                    onPressed: isLoading ? null : _handleLogin,
+                    onPressed: isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -179,31 +197,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text(
-                            'Se connecter (JWT)',
+                            'S\'inscrire',
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                           ),
                   ),
                   const SizedBox(height: 14),
 
-                  // Continue as Guest Button
+                  // Back to Login
                   OutlinedButton(
-                    onPressed: () => context.go('/catalog'),
+                    onPressed: () => context.go('/login'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
                     ),
-                    child: const Text('Continuer en tant qu\'invité'),
-                  ),
-                  const SizedBox(height: 12),
-                  // Register link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Pas de compte ? '),
-                      TextButton(
-                        onPressed: () => context.go('/register'),
-                        child: const Text('S\'inscrire'),
-                      ),
-                    ],
+                    child: const Text('Déjà un compte ? Se connecter'),
                   ),
                 ],
               ),

@@ -1,6 +1,6 @@
 # ChronoPlan — Connected Flutter Time Management & Planning App
 
-A complete Flutter app connected to a real REST API (DummyJSON): **JWT authentication (login / register / logout)**, **Dio `AuthInterceptor` with refresh-token handling**, **local caching with Hive**, **offline mode fallback**, and **network error handling**.
+A complete Flutter app connected to a real REST API (DummyJSON): **JWT authentication (Login / Register / Logout screens)**, **Dio `AuthInterceptor` with refresh-token handling**, **local caching with Hive**, **offline mode fallback**, **network error handling**, and **13 repository unit tests**.
 
 ---
 
@@ -28,13 +28,13 @@ lib/
 │   └── theme/
 │       └── app_theme.dart        # Material 3 light & dark themes
 ├── features/
-│   ├── auth/                     # data / domain / presentation (login, register, logout, JWT)
+│   ├── auth/                     # data / domain / presentation (login_screen, register_screen, logout, JWT)
 │   ├── tasks/                    # data / domain / presentation (tasks from /todos)
 │   ├── products/                 # data / domain / presentation (catalog from /products)
 │   ├── profile/                  # presentation (stats & logout)
 │   └── shared/                   # main_shell_screen, offline_banner, network_error_view
 └── router/
-    └── app_router.dart           # GoRouter: /login, /tasks, /catalog, /profile, /task/:id, /product/:id
+    └── app_router.dart           # GoRouter: /login, /register, /tasks, /catalog, /profile, /task/:id, /product/:id
 ```
 
 Each feature follows the **repository pattern**: an abstract repository contract in `domain/repositories/`, an implementation in `data/repositories/`, with remote (`Dio`) and local (`Hive`) datasources below it. Repositories check connectivity and fall back to the Hive cache when offline.
@@ -87,3 +87,9 @@ flutter run
 - **Username**: `emilys`
 - **Password**: `emilyspass`
 - Guest access ("Continuer en tant qu'invité") is also available from the login screen.
+
+### 🧪 Tests
+```bash
+flutter test
+```
+**13 repository unit tests** (3 auth + 5 product + 5 task) + 1 widget test = 14 tests total.
