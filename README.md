@@ -1,66 +1,83 @@
 # ChronoPlan — Connected Flutter Time Management & Planning App
 
-> **Target Grade: 100/100 pts**  
-> Complete full-stack Flutter application for time management and planning (inspired by Todoist), connected to a real REST API backend (DummyJSON), featuring JWT Authentication, Dio with `AuthInterceptor`, Refresh Token rotation, Local Data Caching with **Hive**, automatic **Offline Mode** fallback, user-friendly network error handling, and unit tests on the repository layer.
+A complete Flutter app connected to a real REST API (DummyJSON): **JWT authentication (login / register / logout)**, **Dio `AuthInterceptor` with refresh-token handling**, **local caching with Hive**, **offline mode fallback**, and **network error handling**.
 
----
 
-## 📋 Evaluation Rubric Alignment (100/100 Pts)
 
-| Criterion | Target | Implemented Solution | Status |
-|---|:---:|---|:---:|
-| **1. Authentication (JWT / OAuth)** | 20 pts | Login, Register, Logout with real DummyJSON JWT endpoints (`/auth/login`, `/auth/refresh`, `/auth/me`). Tokens stored in Hive `auth_box`. | ✅ 20/20 |
-| **2. At least 3 screens from REST API** | 20 pts | 1. Tasks & Planning (`/todos`, project filters, quick add), 2. Task Detail & Pomodoro (`/todos/:id`), 3. Productivity Stats & Profile (`/auth/me`). | ✅ 20/20 |
-| **3. Local Data Caching (Hive / SQLite)** | 15 pts | Hive key-value boxes (`tasks_box`, `auth_box`, `metadata_box`) storing tasks, timestamps, and credentials. | ✅ 15/15 |
-| **4. Offline Mode** | 15 pts | Automatic fallback to cached Hive tasks when offline or network drops, with visible `OfflineBanner`. | ✅ 15/15 |
-| **5. Network Error Handling** | 10 pts | `AppException` mapping all `DioException` types to user-friendly messages with retry action. | ✅ 10/10 |
-| **6. Clean Architecture & Interceptor** | 10 pts | Feature-First Clean Architecture, Repository pattern, Dio with `AuthInterceptor` for Bearer token injection and refresh token logic. | ✅ 10/10 |
-| **7. Unit Tests on Repository Layer** | 10 pts | 8 unit tests in `test/unit/repositories/` testing online success, offline fallback, cache exception, and JWT auth. | ✅ 10/10 |
-| **TOTAL** | **100 pts** | **All instructions and requirements strictly fulfilled.** | **100/100** |
-
----
-
-## 📂 Project Architecture
+##  Architecture (Feature-First Clean Architecture)
 
 ```
-flutter_project/
-├── lib/
-│   ├── core/
-│   │   ├── api/          # api_endpoints.dart, dio_client.dart, auth_interceptor.dart, app_exception.dart
-│   │   ├── cache/        # hive_service.dart (Hive local database)
-│   │   ├── network/      # network_info.dart (Connectivity checking)
-│   │   └── theme/        # app_theme.dart (Material 3)
-│   ├── features/
-│   │   ├── auth/         # data (datasources, models, repo), domain, presentation (providers, login_screen)
-│   │   ├── tasks/        # data (datasources Dio + Hive cache, models, repo), domain, presentation (tasks_screen, task_detail_screen)
-│   │   └── profile/      # presentation (profile_stats_screen connected to /auth/me)
-│   ├── router/           # app_router.dart (GoRouter navigation)
-│   └── main.dart         # Entry point with Hive.initFlutter() & ProviderScope
-└── test/
-    └── unit/
-        └── repositories/ # task_repository_test.dart & auth_repository_test.dart
+lib/
+├── main.dart                     # Bootstrap: HiveService().init() + ProviderScope
+├── core/
+│   ├── api/
+│   │   ├── api_endpoints.dart    # DummyJSON REST API routes
+│   │   ├── app_exception.dart    # AppException hierarchy + Dio error mapper
+│   │   ├── auth_interceptor.dart # QueuedInterceptor: Bearer injection + 401 refresh
+│   │   └── dio_client.dart       # Configured Dio instance (timeouts, LogInterceptor)
+│   ├── cache/
+│   │   └── hive_service.dart     # Hive boxes: auth_box, tasks_box, products_box, metadata_box
+│   ├── network/
+│   │   └── network_info.dart     # Connectivity listener (connectivity_plus)
+│   └── theme/
+│       └── app_theme.dart        # Material 3 light & dark themes
+├── features/
+│   ├── auth/                     # data / domain / presentation (login, register, logout, JWT)
+│   ├── tasks/                    # data / domain / presentation (tasks from /todos)
+│   ├── products/                 # data / domain / presentation (catalog from /products)
+│   ├── profile/                  # presentation (stats & logout)
+│   └── shared/                   # main_shell_screen, offline_banner, network_error_view
+└── router/
+    └── app_router.dart           # GoRouter: /login, /tasks, /catalog, /profile, /task/:id, /product/:id
 ```
+
+Each feature follows the **repository pattern**: an abstract repository contract in `domain/repositories/`, an implementation in `data/repositories/`, with remote (`Dio`) and local (`Hive`) datasources below it. Repositories check connectivity and fall back to the Hive cache when offline.
 
 ---
 
-## ⚡ Quick Start
+##  APIs Used (DummyJSON)
 
+Base URL: `https://dummyjson.com`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/auth/login` | Login → returns JWT `accessToken` & `refreshToken` |
+| `POST` | `/auth/refresh` | Renews the access token |
+| `GET` | `/auth/me` | Current user profile |
+| `POST` | `/users/add` | Registration (DummyJSON simulation) |
+| `GET` | `/todos?limit=25` | Task list |
+| `GET` | `/todos/:id` | Task details |
+| `POST` | `/todos/add` | Create a task |
+| `PUT` | `/todos/:id` | Toggle task completion |
+| `DELETE` | `/todos/:id` | Delete a task |
+| `GET` | `/products` | Product catalog |
+| `GET` | `/products/search?q=` | Product search |
+| `GET` | `/products/category/:slug` | Products by category |
+| `GET` | `/products/:id` | Product details |
+
+---
+
+##  How to Configure the Project
+
+### Prerequisites
+- Flutter SDK `>= 3.0.0` (Dart `>= 3.0.0`)
+
+### Steps
 ```bash
-# 1. Navigate to Flutter project
-cd flutter_project
-
-# 2. Get dependencies
+# 1. Clone & install dependencies
+git clone https://github.com/BenDiya07/Flutter-Project-Multi-screen-app-with-navigation.git
+cd Flutter-Project-Multi-screen-app-with-navigation/flutter_project
 flutter pub get
 
-# 3. Run unit tests
+# 2. Analyze & run tests
+flutter analyze
 flutter test
 
-# 4. Launch app
+# 3. Launch the app
 flutter run
 ```
 
-### Test Credentials
+### Demo credentials (DummyJSON)
 - **Username**: `emilys`
 - **Password**: `emilyspass`
-*(Pre-filled button on login screen)*
-# ChronoPlan
+- Guest access ("Continuer en tant qu'invité") is also available from the login screen.
