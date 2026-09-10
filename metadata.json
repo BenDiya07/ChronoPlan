@@ -1,0 +1,6 @@
+{
+  "name": "ChronoPlan — Connected Time & Planning App",
+  "description": "Application Flutter de gestion du temps et planning style Todoist connectée à une vraie API REST avec JWT, Dio Interceptor, cache local Hive, mode hors-ligne, Clean Architecture et tests unitaires.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
